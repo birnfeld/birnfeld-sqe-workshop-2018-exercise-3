@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Exercise 1</title>
+    <title>Exercise 2</title>
     <style>
         table {
             width: 100%;
@@ -12,21 +12,12 @@
 
         .textAreaWrapper {
             width: 100%;
-            height: 80vh;
+            height: 40vh;
         }
 
         textarea {
             width: 80%;
             height: 95%;
-        }
-
-        #parsedTable{
-            margin: 50px auto;
-        }
-
-        #parsedTable td, th{
-            border: 1px solid #ddd;
-            padding: 8px 15px;
         }
 
     </style>
@@ -50,6 +41,9 @@
             <div class="textAreaWrapper">
                 <textarea id="codePlaceholder" title="Enter code here"></textarea>
             </div>
+            <div>
+                <textarea id="inputVector" title="Enter Input Vector"></textarea>
+            </div>
         </td>
         <td>
             <div class="textAreaWrapper">
@@ -68,16 +62,9 @@
     </tr>
 </table>
 <br>
-<table id="parsedTable" style="border: 1px solid #000; width: 85%;">
-    <tr>
-        <th>Line</th>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Condition</th>
-        <th>Value</th>
-    </tr>
 
-</table>
+<div id="resCodeWrapper" style="margin: 20px; padding: 20px;"></div>
+
 
 <script src="dist/bundle.js"></script>
 </body>
