@@ -4,7 +4,9 @@ import * as esprima from 'esprima';
 let symsubDictionary = {
     'BlockStatement': symsubBlockStatement,
     'ExpressionStatement': symsubExpression,
+    'UpdateExpression': symsubUpdateExpr,
     'AssignmentExpression': symsubAssignmentExpr,
+    'BinaryExpression': symsubBinaryExpr,
     'ReturnStatement': symsubReturnStatement,
     'FunctionDeclaration': symsubFunctionDeclaration,
     'VariableDeclaration': symsubVarDeclaration,
@@ -29,22 +31,22 @@ function symsubExpression(parsedCode, varDictionary){
     symsubExpr(parsedCode['expression'],varDictionary);
 }
 
-function getGlobalVarsAndFunctionCode(parsedCode){
-    let globalVarsDict = {};
-    let toDelete=[];
-    let functionCode = parsedCode;
-    parsedCode['body'].forEach(function (element) {
-        if(element['type'] === 'VariableDeclaration'){
-            element['declarations'].forEach(function (varDec) {
-                globalVarsDict[varDec['id']['name']] = escodegen.generate(varDec['init']);
-            });
-            toDelete.push(element);
-        }
-        else
-            functionCode = element;
-    });
-    return [functionCode, globalVarsDict];
-}
+// function getGlobalVarsAndFunctionCode(parsedCode){
+//     let globalVarsDict = {};
+//     let toDelete=[];
+//     let functionCode = parsedCode;
+//     parsedCode['body'].forEach(function (element) {
+//         if(element['type'] === 'VariableDeclaration'){
+//             element['declarations'].forEach(function (varDec) {
+//                 globalVarsDict[varDec['id']['name']] = escodegen.generate(varDec['init']);
+//             });
+//             toDelete.push(element);
+//         }
+//         else
+//             functionCode = element;
+//     });
+//     return [functionCode, globalVarsDict];
+// }
 
 function symbolicSubstitution(parsedCode, varDictionary) {
     symsubExpr(parsedCode, varDictionary);
@@ -57,7 +59,7 @@ function symsubProgram(parsedCode, varDictionary){
     });
 }
 
-export {getGlobalVarsAndFunctionCode};
+// export {getGlobalVarsAndFunctionCode};
 export {symbolicSubstitution};
 export {replaceVars};
 export {symsubIfStatement};
@@ -65,15 +67,15 @@ export {symsubIfStatement};
 function symsubBlockStatement(parsedCode, varDictionary){
     let tempDict = {};
     Object.assign(tempDict, varDictionary);
-    let toDelete=[];
+    //let toDelete=[];
     parsedCode['body'].forEach(function (element) {
         symsubExpr(element, varDictionary);
-        if(element['type'] === 'VariableDeclaration' || (element['type'] === 'ExpressionStatement' && (escodegen.generate(element['expression']['left']) in varDictionary)))
-            toDelete.push(element);
+        // if(element['type'] === 'VariableDeclaration' || (element['type'] === 'ExpressionStatement' && (escodegen.generate(element['expression']['left']) in varDictionary)))
+        //     toDelete.push(element);
     });
-    toDelete.forEach(function (element) {
-        parsedCode['body'].splice(element, 1);
-    });
+    // toDelete.forEach(function (element) {
+    //     parsedCode['body'].splice(element, 1);
+    // });
     Object.assign(varDictionary, tempDict);
 }
 
@@ -122,6 +124,21 @@ function symsubVarDeclaration(parsedCode, varDictionary){
     parsedCode['declarations'].forEach(function (element) {
         symsubVarDeclarator(element, varDictionary);
     });
+}
+
+function symsubUpdateExpr(parsedCode, varDictionary){
+    let updatedVar = escodegen.generate(parsedCode['argument']);
+    if(parsedCode['operator'] === '++'){
+        varDictionary[updatedVar] = '(' + varDictionary[updatedVar] + ' + 1)';
+    }
+    else{
+        varDictionary[updatedVar] = '(' + varDictionary[updatedVar] + ' - 1)';
+    }
+}
+
+function symsubBinaryExpr(parsedCode, varDictionary){
+    parsedCode['left'] = esprima.parseScript(replaceVars(escodegen.generate(parsedCode['left']), varDictionary)).body[0].expression;
+    parsedCode['right'] = esprima.parseScript(replaceVars(escodegen.generate(parsedCode['right']), varDictionary)).body[0].expression;
 }
 
 function symsubAssignmentExpr(parsedCode, varDictionary){
